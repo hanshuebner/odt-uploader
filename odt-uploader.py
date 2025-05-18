@@ -118,9 +118,11 @@ def upload_file(port, filename, start_address):
 
         # Send all values in sequence
         for addr, value in LOADER:
-            # Set the value (special case for length at address 106)
-            if addr == 0o106:
-                value = len(data)
+            # Set dynamic values based on address
+            if addr == 0o102:
+                value = start_address  # Set the start address
+            elif addr == 0o106:
+                value = len(data)      # Set the length
 
             # Send the value
             value_str = f"{value:06o}\n"
@@ -147,15 +149,15 @@ def upload_file(port, filename, start_address):
         # Send the binary data directly
         logging.info("Sending binary data...")
         pbar = tqdm(total=len(data), unit='bytes', desc='Uploading')
-        
+
         # Calculate delay per byte (10 bits at 38400 bps)
         byte_delay = 10 / 38400
-        
+
         for byte in data:
             ser.write(bytes([byte]))
             time.sleep(byte_delay)  # Wait for transmission to complete
             pbar.update(1)
-        
+
         pbar.close()
 
         # Wait for loader to finish and return to ODT
