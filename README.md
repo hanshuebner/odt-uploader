@@ -1,38 +1,68 @@
-# PDP-11 Binary File Uploader
+# ODT Uploader
 
-This tool uploads binary files to a PDP-11 through a serial port while the ODT monitor is running. It handles the communication protocol and ensures proper byte ordering for the PDP-11 architecture.
+A Python script for uploading binary files to a PDP-11 via serial port using ODT (Octal Debugging Technique).
+
+## Overview
+
+This script implements a two-phase upload process:
+1. First, a small loader program is uploaded using ODT. This loader is responsible for receiving the binary data and storing it in memory.
+2. Then, the actual binary program is sent directly over the serial port, with the loader handling the byte-by-byte transfer.
+
+This approach is much faster than using ODT for the entire transfer, as it minimizes the overhead of ASCII conversion and handshaking.
 
 ## Requirements
 
-- Python 3.6 or higher
-- pyserial library for serial port access
-- tqdm library for progress reporting
-
-## Installation
-
-1. Install the required dependencies (you may want to use a [virtual environment](https://docs.python.org/3/library/venv.html)):
-```bash
-pip install -r requirements.txt
-```
+- Python 3.x
+- pyserial
+- tqdm
 
 ## Usage
 
 ```bash
-python odt-uploader.py <serial_port> <binary_file> <start_address> [-v]
+./odt-uploader.py <port> <filename> <start_address>
 ```
 
-Where:
-- `<serial_port>` is the serial port device (e.g., `/dev/ttyUSB0` on Linux, `COM1` on Windows)
-- `<binary_file>` is the path to the binary file to upload
-- `<start_address>` is the octal start address where the file should be loaded
-- `-v` or `--verbose` enables detailed logging of serial communication
+Arguments:
+- `port`: Serial port (e.g., /dev/ttyUSB0)
+- `filename`: Binary file to upload
+- `start_address`: Start address in octal
 
-Example:
+Options:
+- `-v, --verbose`: Enable verbose logging
+
+## Example
+
 ```bash
-python odt-uploader.py /dev/ttyUSB0 program.bin 1000 -v
+./odt-uploader.py /dev/ttyUSB0 program.bin 1000
 ```
 
-This will upload `program.bin` starting at address 1000 (octal) with verbose logging enabled.
+This will:
+1. Upload the loader program to address 100
+2. Start the loader
+3. Send the binary data directly
+4. Wait for the loader to complete
+
+## How it Works
+
+1. The script first uploads a small loader program using ODT. The loader:
+   - Sets up registers for the destination address and data length
+   - Waits for bytes from the serial port
+   - Copies each byte to memory
+   - Halts when complete
+
+2. Once the loader is in place, the script:
+   - Starts the loader with the ODT command "100g"
+   - Sends the binary data directly over the serial port
+   - Waits for the loader to complete and return to ODT
+
+The loader handles the actual byte-by-byte transfer, making the process much faster than using ODT for the entire transfer.
+
+## Notes
+
+- The loader program is stored in the script as a constant
+- The loader automatically adjusts the length based on the input file size
+- The script includes proper timing to ensure reliable transmission
+- Progress is shown with a progress bar during the binary transfer phase
 
 ## Features
 
