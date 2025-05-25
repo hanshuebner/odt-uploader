@@ -86,7 +86,7 @@ def send_word(ser, word, timeout=1.0):
     response = read_until_prompt(ser, b' ', timeout)
     return response
 
-def upload_file(port, filename, start_address):
+def upload_file(port, baud_rate, filename, start_address):
     """Upload a binary file to the PDP-11 using the loader program."""
     # Open and read the binary file
     with open(filename, 'rb') as f:
@@ -95,8 +95,8 @@ def upload_file(port, filename, start_address):
     logging.info(f"File size: {len(data)} bytes")
 
     # Open serial port
-    with serial.Serial(port, 38400, bytesize=8, parity='N', stopbits=1, timeout=1) as ser:
-        logging.info(f"Opened serial port {port} at 38400 bps, 8N1")
+    with serial.Serial(port, baud_rate, bytesize=8, parity='N', stopbits=1, timeout=1) as ser:
+        logging.info(f"Opened serial port {port} at {baud_rate} bps, 8N1")
 
         # Send initial CR to get ODT's attention
         logging.info("Sending initial CR to get ODT's attention...")
@@ -173,6 +173,7 @@ def upload_file(port, filename, start_address):
 def main():
     parser = argparse.ArgumentParser(description='Upload binary file to PDP-11 via serial port')
     parser.add_argument('port', help='Serial port (e.g., /dev/ttyUSB0)')
+    parser.add_argument('baud_rate', type=int, help='baud rate e.g. 38400, 115200')
     parser.add_argument('filename', help='Binary file to upload')
     parser.add_argument('start_address', type=lambda x: int(x, 8), help='Start address in octal')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
@@ -182,7 +183,7 @@ def main():
     setup_logging(args.verbose)
 
     try:
-        success = upload_file(args.port, args.filename, args.start_address)
+        success = upload_file(args.port, args.baud_rate, args.filename, args.start_address)
         sys.exit(0 if success else 1)
     except Exception as e:
         logging.error(f"Error: {e}")
