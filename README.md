@@ -19,11 +19,12 @@ This approach is much faster than using ODT for the entire transfer, as it minim
 ## Usage
 
 ```bash
-./odt-uploader.py <port> <filename> <start_address>
+./odt-uploader.py <port> <baud_rate> <filename> <start_address>
 ```
 
 Arguments:
 - `port`: Serial port (e.g., /dev/ttyUSB0)
+- `baud_rate`: Baud rate (e.g., 38400, 115200)
 - `filename`: Binary file to upload
 - `start_address`: Start address in octal
 
@@ -33,7 +34,7 @@ Options:
 ## Example
 
 ```bash
-./odt-uploader.py /dev/ttyUSB0 program.bin 1000
+./odt-uploader.py /dev/ttyUSB0 38400 program.bin 1000
 ```
 
 This will:
@@ -66,7 +67,8 @@ The loader handles the actual byte-by-byte transfer, making the process much fas
 
 ## Features
 
-- Configures serial port for 38400 bps, 8N1
+- Configurable baud rate (defaults to 38400 bps)
+- 8N1 serial configuration (8 data bits, no parity, 1 stop bit)
 - Handles PDP-11 little-endian byte ordering
 - Verifies character echo from ODT
 - Provides progress updates during upload
